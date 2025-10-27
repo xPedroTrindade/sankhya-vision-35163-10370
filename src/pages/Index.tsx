@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { FileUpload } from "@/components/FileUpload";
 import { Dashboard } from "@/components/Dashboard";
 import { Navbar } from "@/components/Navbar";
@@ -7,12 +8,18 @@ import { parseFile, validateTickets } from "@/utils/fileParser";
 import { useTickets } from "@/contexts/TicketContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Calendar } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Index = () => {
+  const location = useLocation();
   const { tickets, setTickets } = useTickets();
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({});
+  
+  // Pegar filtro de mês/ano do state (vindo do ControleHoras)
+  const filterMonth = location.state?.filterMonth as string | undefined;
+  const filterYear = location.state?.filterYear as number | undefined;
 
   const handleFileSelect = async (file: File) => {
     setIsLoading(true);
@@ -61,6 +68,49 @@ const Index = () => {
     return uniqueRequesters.sort();
   }, [tickets]);
 
+  // Função auxiliar para converter nome do mês em número
+  const getMonthNumber = (monthName: string): number => {
+    const months: Record<string, number> = {
+      'Janeiro': 0, 'Fevereiro': 1, 'Março': 2, 'Abril': 3,
+      'Maio': 4, 'Junho': 5, 'Julho': 6, 'Agosto': 7,
+      'Setembro': 8, 'Outubro': 9, 'Novembro': 10, 'Dezembro': 11
+    };
+    return months[monthName] ?? -1;
+  };
+
+  // Filtrar tickets por mês/ano se fornecido
+  const filteredTicketsByMonth = useMemo(() => {
+    if (!filterMonth || !filterYear) return tickets;
+    
+    const targetMonth = getMonthNumber(filterMonth);
+    if (targetMonth === -1) return tickets;
+
+    return tickets.filter(ticket => {
+      try {
+        // Tentar parsear diferentes formatos de data
+        const dateStr = ticket.horaCriacao;
+        let date: Date | null = null;
+
+        // Formato DD/MM/YYYY ou DD/MM/YYYY HH:mm
+        if (dateStr.includes('/')) {
+          const parts = dateStr.split(/[/ :]/);
+          if (parts.length >= 3) {
+            date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          }
+        } else {
+          // Formato ISO ou outros
+          date = new Date(dateStr);
+        }
+
+        if (!date || isNaN(date.getTime())) return false;
+        
+        return date.getMonth() === targetMonth && date.getFullYear() === filterYear;
+      } catch {
+        return false;
+      }
+    });
+  }, [tickets, filterMonth, filterYear]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -95,13 +145,21 @@ const Index = () => {
           </div>
         ) : (
           <>
+            {filterMonth && filterYear && (
+              <Alert className="mb-6 border-primary/20 bg-primary/5">
+                <Calendar className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-foreground">
+                  Visualizando tickets de <strong>{filterMonth} {filterYear}</strong> ({filteredTicketsByMonth.length} tickets encontrados)
+                </AlertDescription>
+              </Alert>
+            )}
             <FilterSection 
               filters={filters} 
               onFilterChange={setFilters}
               processes={processes}
               requesters={requesters}
             />
-            <Dashboard tickets={tickets} filters={filters} />
+            <Dashboard tickets={filteredTicketsByMonth} filters={filters} />
           </>
         )}
       </main>

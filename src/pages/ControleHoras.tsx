@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -37,6 +38,8 @@ interface MonthData {
 }
 
 export default function ControleHoras() {
+  const navigate = useNavigate();
+  
   // Dados simulados - futuramente integrar com API/Banco
   const historicoMensal: MonthData[] = [
     {
@@ -128,27 +131,37 @@ export default function ControleHoras() {
     item => `${item.month} ${item.year}` === mesSelecionado
   ) || historicoMensal[historicoMensal.length - 1];
 
-  // Função para determinar cor do status
+  // Função para determinar cor do status (INVERTIDO: usar todas as horas = saudável)
   const getStatusColor = (percentual: number) => {
-    if (percentual >= 90) return "destructive";
-    if (percentual >= 75) return "warning";
-    return "success";
+    if (percentual >= 90) return "success"; // Verde - ótima utilização
+    if (percentual >= 75) return "warning"; // Amarelo - boa utilização
+    return "destructive"; // Vermelho - baixa utilização
   };
 
-  // Função para determinar cor da badge
+  // Função para determinar cor da badge (INVERTIDO)
   const getBadgeVariant = (percentual: number) => {
-    if (percentual >= 90) return "destructive";
-    if (percentual >= 75) return "default";
-    return "secondary";
+    if (percentual >= 90) return "secondary"; // Verde
+    if (percentual >= 75) return "default"; // Amarelo
+    return "destructive"; // Vermelho
   };
 
-  // Função para mensagem de alerta
+  // Função para mensagem de alerta (INVERTIDO)
   const getMensagemAlerta = (percentual: number) => {
     if (percentual >= 90) 
-      return "⚠️ Atenção: Mais de 90% das horas foram utilizadas neste mês.";
+      return "✅ Excelente! Você está utilizando as horas contratadas de forma eficiente.";
     if (percentual >= 75) 
-      return "💡 Aviso: Você já utilizou mais de 75% das horas do mês.";
-    return "✅ Consumo saudável. Continue acompanhando o uso das horas.";
+      return "💡 Boa utilização. Considere usar o restante das horas disponíveis.";
+    return "⚠️ Atenção: Baixa utilização das horas contratadas. Aproveite melhor seu contrato!";
+  };
+
+  // Função para navegar ao dashboard filtrado por mês
+  const handleMonthClick = (month: string, year: number) => {
+    navigate('/', { 
+      state: { 
+        filterMonth: month,
+        filterYear: year 
+      } 
+    });
   };
 
   return (
@@ -282,10 +295,10 @@ export default function ControleHoras() {
                   <div 
                     className={`h-full rounded-full transition-all duration-1000 ease-out ${
                       dadosMesAtual.percentualUtilizado >= 90 
-                        ? 'bg-destructive shadow-lg' 
+                        ? 'bg-gradient-success shadow-success' 
                         : dadosMesAtual.percentualUtilizado >= 75 
                         ? 'bg-warning shadow-lg' 
-                        : 'bg-gradient-success shadow-success'
+                        : 'bg-destructive shadow-lg'
                     }`}
                     style={{ width: `${dadosMesAtual.percentualUtilizado}%` }}
                   />
@@ -294,17 +307,17 @@ export default function ControleHoras() {
 
               <div className={`p-4 rounded-lg flex items-start gap-3 ${
                 dadosMesAtual.percentualUtilizado >= 90 
-                  ? 'bg-destructive/10 border border-destructive/20' 
+                  ? 'bg-success/10 border border-success/20' 
                   : dadosMesAtual.percentualUtilizado >= 75 
                   ? 'bg-warning/10 border border-warning/20' 
-                  : 'bg-success/10 border border-success/20'
+                  : 'bg-destructive/10 border border-destructive/20'
               }`}>
                 <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
                   dadosMesAtual.percentualUtilizado >= 90 
-                    ? 'text-destructive' 
+                    ? 'text-success' 
                     : dadosMesAtual.percentualUtilizado >= 75 
                     ? 'text-warning' 
-                    : 'text-success'
+                    : 'text-destructive'
                 }`} />
                 <p className="text-sm text-foreground">
                   {getMensagemAlerta(dadosMesAtual.percentualUtilizado)}
@@ -341,7 +354,8 @@ export default function ControleHoras() {
                     {historicoMensal.map((item, index) => (
                       <TableRow 
                         key={`${item.month}-${item.year}`}
-                        className="hover:bg-muted/30 transition-colors"
+                        onClick={() => handleMonthClick(item.month, item.year)}
+                        className="hover:bg-muted/30 transition-colors cursor-pointer"
                       >
                         <TableCell className="font-medium">
                           {item.month} {item.year}
@@ -361,10 +375,10 @@ export default function ControleHoras() {
                               <div 
                                 className={`h-full rounded-full ${
                                   item.percentualUtilizado >= 90 
-                                    ? 'bg-destructive' 
+                                    ? 'bg-success' 
                                     : item.percentualUtilizado >= 75 
                                     ? 'bg-warning' 
-                                    : 'bg-success'
+                                    : 'bg-destructive'
                                 }`}
                                 style={{ width: `${item.percentualUtilizado}%` }}
                               />
@@ -377,10 +391,10 @@ export default function ControleHoras() {
                         <TableCell className="text-center">
                           <Badge variant={getBadgeVariant(item.percentualUtilizado)}>
                             {item.percentualUtilizado >= 90 
-                              ? 'Crítico' 
+                              ? 'Saudável' 
                               : item.percentualUtilizado >= 75 
                               ? 'Atenção' 
-                              : 'Saudável'}
+                              : 'Crítico'}
                           </Badge>
                         </TableCell>
                       </TableRow>
