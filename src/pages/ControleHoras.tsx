@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { Dashboard } from "@/components/Dashboard";
+import { FilterSection, FilterOptions } from "@/components/FilterSection";
+import { generateMockTickets } from "@/utils/mockTickets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Select, 
@@ -24,7 +27,9 @@ import {
   CheckCircle2, 
   AlertCircle,
   TrendingUp,
-  Info
+  Info,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 // Tipos
@@ -39,6 +44,11 @@ interface MonthData {
 
 export default function ControleHoras() {
   const navigate = useNavigate();
+  
+  // Carregar tickets fictícios
+  const mockTickets = useMemo(() => generateMockTickets(), []);
+  const [filters, setFilters] = useState<FilterOptions>({});
+  const [showHistorico, setShowHistorico] = useState(false);
   
   // Dados simulados - futuramente integrar com API/Banco
   const historicoMensal: MonthData[] = [
@@ -122,14 +132,70 @@ export default function ControleHoras() {
       horasRestantes: 5,
       percentualUtilizado: 87.5
     },
+    {
+      month: "Setembro",
+      year: 2025,
+      horasContratadas: 40,
+      horasConcluidas: 40,
+      horasRestantes: 0,
+      percentualUtilizado: 100
+    },
   ];
+
+  // Extract unique processes and requesters for filter dropdowns
+  const processes = useMemo(() => {
+    const uniqueProcesses = Array.from(new Set(mockTickets.map(t => t.processo).filter(Boolean)));
+    return uniqueProcesses.sort();
+  }, [mockTickets]);
+
+  const requesters = useMemo(() => {
+    const uniqueRequesters = Array.from(new Set(mockTickets.map(t => t.nomeSolicitante).filter(Boolean)));
+    return uniqueRequesters.sort();
+  }, [mockTickets]);
 
   const [mesSelecionado, setMesSelecionado] = useState("Outubro 2025");
   
   // Buscar dados do mês selecionado
   const dadosMesAtual = historicoMensal.find(
     item => `${item.month} ${item.year}` === mesSelecionado
-  ) || historicoMensal[historicoMensal.length - 1];
+  ) || historicoMensal[0];
+  
+  // Filtrar tickets pelo mês selecionado
+  const getMonthNumber = (monthName: string): number => {
+    const months: Record<string, number> = {
+      'Janeiro': 0, 'Fevereiro': 1, 'Março': 2, 'Abril': 3,
+      'Maio': 4, 'Junho': 5, 'Julho': 6, 'Agosto': 7,
+      'Setembro': 8, 'Outubro': 9, 'Novembro': 10, 'Dezembro': 11
+    };
+    return months[monthName] ?? -1;
+  };
+
+  const filteredTicketsByMonth = useMemo(() => {
+    const targetMonth = getMonthNumber(dadosMesAtual.month);
+    if (targetMonth === -1) return mockTickets;
+
+    return mockTickets.filter(ticket => {
+      try {
+        const dateStr = ticket.horaCriacao;
+        let date: Date | null = null;
+
+        if (dateStr.includes('/')) {
+          const parts = dateStr.split(/[/, ]/);
+          if (parts.length >= 3) {
+            date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          }
+        } else {
+          date = new Date(dateStr);
+        }
+
+        if (!date || isNaN(date.getTime())) return false;
+        
+        return date.getMonth() === targetMonth && date.getFullYear() === dadosMesAtual.year;
+      } catch {
+        return false;
+      }
+    });
+  }, [mockTickets, dadosMesAtual]);
 
   // Função para determinar cor do status (INVERTIDO: usar todas as horas = saudável)
   const getStatusColor = (percentual: number) => {
@@ -170,23 +236,23 @@ export default function ControleHoras() {
       
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
+        <div className="mb-6 animate-fade-in">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
             Controle de Horas de Suporte
           </h1>
           <p className="text-muted-foreground">
-            Acompanhe o uso mensal de horas contratadas do seu contrato de SLA
+            Visualização inteligente do uso de horas contratadas • {filteredTicketsByMonth.length} tickets em {dadosMesAtual.month}
           </p>
         </div>
 
-        {/* Filtro de Mês */}
-        <div className="mb-8 animate-fade-in" style={{ animationDelay: "100ms" }}>
+        {/* Filtro de Mês e Filtros */}
+        <div className="mb-6 animate-fade-in space-y-4" style={{ animationDelay: "100ms" }}>
           <Card className="border-none shadow-lg bg-gradient-card">
             <CardContent className="p-6">
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Selecione o período:</span>
+                  <span className="text-sm font-medium text-foreground">Período:</span>
                 </div>
                 <Select value={mesSelecionado} onValueChange={setMesSelecionado}>
                   <SelectTrigger className="w-[200px] bg-background">
@@ -204,24 +270,26 @@ export default function ControleHoras() {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="mt-4 p-3 bg-info/10 rounded-lg border border-info/20">
-                <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-info mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-muted-foreground">
-                    O ciclo de horas é reiniciado a cada mês. As horas não são cumulativas entre períodos.
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
+          
+          <FilterSection 
+            filters={filters} 
+            onFilterChange={setFilters}
+            processes={processes}
+            requesters={requesters}
+          />
         </div>
 
-        {/* Resumo do Mês Atual */}
-        <div className="mb-8">
+        {/* Dashboard com dados do mês */}
+        <Dashboard tickets={filteredTicketsByMonth} filters={filters} />
+
+        {/* Resumo de Horas do Mês Atual */}
+        <div className="mb-8 mt-8">
           <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <Clock className="h-6 w-6 text-primary" />
             <span className="bg-gradient-secondary bg-clip-text text-transparent">
-              {dadosMesAtual.month} {dadosMesAtual.year}
+              Resumo de Horas - {dadosMesAtual.month} {dadosMesAtual.year}
             </span>
           </h2>
 
@@ -327,16 +395,27 @@ export default function ControleHoras() {
           </Card>
         </div>
 
-        {/* Histórico de Meses Anteriores */}
+        {/* Histórico de Contratos - Expansível */}
         <div className="animate-fade-in" style={{ animationDelay: "600ms" }}>
-          <h2 className="text-2xl font-bold text-foreground mb-4">
-            Histórico Mensal
-          </h2>
-
           <Card className="border-none shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Resumo dos Últimos Meses</CardTitle>
+            <CardHeader 
+              className="cursor-pointer hover:bg-muted/30 transition-colors"
+              onClick={() => setShowHistorico(!showHistorico)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">Ver Histórico de Contratos</CardTitle>
+                </div>
+                {showHistorico ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
             </CardHeader>
+            
+            {showHistorico && (
             <CardContent>
               <div className="rounded-lg border border-border overflow-hidden">
                 <Table>
@@ -403,6 +482,7 @@ export default function ControleHoras() {
                 </Table>
               </div>
             </CardContent>
+            )}
           </Card>
         </div>
       </main>
