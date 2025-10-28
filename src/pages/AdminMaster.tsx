@@ -2,7 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCompany } from "@/contexts/CompanyContext";
-import { Building2, LayoutDashboard, ListChecks, Users, Filter, TrendingUp, Clock, HelpCircle } from "lucide-react";
+import { Building2, LayoutDashboard, ListChecks, Users, Filter, TrendingUp, Clock, HelpCircle, SmilePlus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -64,41 +64,45 @@ const AdminMaster = () => {
             <Card className="bg-gradient-card border-none shadow-lg">
               <CardContent className="p-6">
                 <Tabs defaultValue="dashboard" onValueChange={handleTabChange}>
-                  <TabsList className="grid w-full grid-cols-7 gap-2">
+                  <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2">
                     <TabsTrigger value="dashboard" className="gap-2">
                       <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
+                      <span className="hidden sm:inline">Dashboard</span>
                     </TabsTrigger>
                     <TabsTrigger value="processos" className="gap-2">
                       <ListChecks className="h-4 w-4" />
-                      Processos
+                      <span className="hidden sm:inline">Processos</span>
                     </TabsTrigger>
                     <TabsTrigger value="solicitantes" className="gap-2">
                       <Users className="h-4 w-4" />
-                      Solicitantes
+                      <span className="hidden sm:inline">Solicitantes</span>
                     </TabsTrigger>
                     <TabsTrigger value="analise-avancada" className="gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      Análise
+                      <span className="hidden sm:inline">Análise</span>
                     </TabsTrigger>
                     <TabsTrigger value="controle-horas" className="gap-2">
                       <Clock className="h-4 w-4" />
-                      Horas
+                      <span className="hidden sm:inline">Horas</span>
                     </TabsTrigger>
                     <TabsTrigger value="faq" className="gap-2">
                       <HelpCircle className="h-4 w-4" />
-                      FAQ
+                      <span className="hidden sm:inline">FAQ</span>
                     </TabsTrigger>
                     <TabsTrigger value="filtros" className="gap-2">
                       <Filter className="h-4 w-4" />
-                      Filtros
+                      <span className="hidden sm:inline">Filtros</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="pesquisa-satisfacao" className="gap-2">
+                      <SmilePlus className="h-4 w-4" />
+                      <span className="hidden sm:inline">Satisfação</span>
                     </TabsTrigger>
                   </TabsList>
 
                   <div className="mt-6">
                     <div className="text-center p-12 text-muted-foreground">
                       <p className="text-lg mb-2">Clique nas abas acima para acessar cada seção</p>
-                      <p className="text-sm">Os dados serão filtrados automaticamente pela empresa selecionada</p>
+                      <p className="text-sm">Os dados serão filtrados automaticamente pela empresa selecionada: <span className="font-semibold text-foreground">{selectedCompany}</span></p>
                     </div>
                   </div>
                 </Tabs>

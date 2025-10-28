@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Filter, Search, Download, FileX, Smile, Frown, Meh } from "lucide-react";
+import { Filter, Search, Download, FileX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,7 +13,6 @@ import { useCompany } from "@/contexts/CompanyContext";
 import { format, parseISO, differenceInHours } from "date-fns";
 import * as XLSX from 'xlsx';
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
 
 const Filtros = () => {
   const { tickets } = useTickets();
@@ -77,26 +76,6 @@ const Filtros = () => {
       return true;
     });
   }, [tickets, filters, isAdmin, selectedCompany]);
-
-  // Calculate satisfaction stats for admin
-  const satisfactionStats = useMemo(() => {
-    if (!isAdmin) return null;
-    
-    const total = filteredTickets.length;
-    const satisfied = filteredTickets.filter(t => t.avaliacao === "satisfeito").length;
-    const neutral = filteredTickets.filter(t => t.avaliacao === "neutro").length;
-    const unsatisfied = filteredTickets.filter(t => t.avaliacao === "insatisfeito").length;
-    
-    return {
-      total,
-      satisfied,
-      neutral,
-      unsatisfied,
-      satisfiedPercent: total > 0 ? (satisfied / total) * 100 : 0,
-      neutralPercent: total > 0 ? (neutral / total) * 100 : 0,
-      unsatisfiedPercent: total > 0 ? (unsatisfied / total) * 100 : 0,
-    };
-  }, [filteredTickets, isAdmin]);
 
   // Calculate resolution time
   const getResolutionTime = (ticket: any) => {
@@ -184,69 +163,6 @@ const Filtros = () => {
               Busca detalhada e exportação de dados customizados
             </p>
           </div>
-
-          {/* Satisfaction Summary for Admin */}
-          {isAdmin && satisfactionStats && (
-            <Card className="shadow-lg border-none bg-gradient-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Smile className="h-5 w-5 text-primary" />
-                  Resumo de Satisfação {selectedCompany && `- ${selectedCompany}`}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">😊</span>
-                        <span className="font-medium">Satisfeitos</span>
-                      </div>
-                      <span className="text-2xl font-bold text-green-500">
-                        {satisfactionStats.satisfiedPercent.toFixed(1)}%
-                      </span>
-                    </div>
-                    <Progress value={satisfactionStats.satisfiedPercent} className="h-2" />
-                    <p className="text-sm text-muted-foreground">
-                      {satisfactionStats.satisfied} de {satisfactionStats.total} tickets
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">😐</span>
-                        <span className="font-medium">Neutros</span>
-                      </div>
-                      <span className="text-2xl font-bold text-yellow-500">
-                        {satisfactionStats.neutralPercent.toFixed(1)}%
-                      </span>
-                    </div>
-                    <Progress value={satisfactionStats.neutralPercent} className="h-2" />
-                    <p className="text-sm text-muted-foreground">
-                      {satisfactionStats.neutral} de {satisfactionStats.total} tickets
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">😞</span>
-                        <span className="font-medium">Insatisfeitos</span>
-                      </div>
-                      <span className="text-2xl font-bold text-red-500">
-                        {satisfactionStats.unsatisfiedPercent.toFixed(1)}%
-                      </span>
-                    </div>
-                    <Progress value={satisfactionStats.unsatisfiedPercent} className="h-2" />
-                    <p className="text-sm text-muted-foreground">
-                      {satisfactionStats.unsatisfied} de {satisfactionStats.total} tickets
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Filtros */}
           <Card className="shadow-lg border-none bg-gradient-card">

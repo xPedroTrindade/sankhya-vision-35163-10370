@@ -10,6 +10,7 @@ import { CompanyProvider } from "./contexts/CompanyContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import AdminMaster from "./pages/AdminMaster";
+import PesquisaSatisfacao from "./pages/PesquisaSatisfacao";
 import Index from "./pages/Index";
 import Processos from "./pages/Processos";
 import Solicitantes from "./pages/Solicitantes";
@@ -71,6 +72,11 @@ const App = () => (
                 <Route path="/admin/faq" element={
                   <ProtectedRoute requireRole="admin">
                     <FAQ />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/pesquisa-satisfacao" element={
+                  <ProtectedRoute requireRole="admin">
+                    <PesquisaSatisfacao />
                   </ProtectedRoute>
                 } />
                 <Route path="/" element={
