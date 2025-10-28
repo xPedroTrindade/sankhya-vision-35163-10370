@@ -1,19 +1,11 @@
 import { Navbar } from "@/components/Navbar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCompany } from "@/contexts/CompanyContext";
-import { Building2, LayoutDashboard, ListChecks, Users, Filter, TrendingUp, Clock, HelpCircle, SmilePlus } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { Building2, Settings, Users, BarChart3, Shield } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AdminMaster = () => {
-  const { selectedCompany, setSelectedCompany, companies } = useCompany();
-  const navigate = useNavigate();
-
-  const handleTabChange = (value: string) => {
-    navigate(`/admin/${value}`);
-  };
+  const { selectedCompany } = useCompany();
 
   return (
     <div className="min-h-screen bg-background">
@@ -21,93 +13,110 @@ const AdminMaster = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="space-y-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Painel Admin Master</h1>
+            <h1 className="text-4xl font-bold mb-2">Painel Administrativo</h1>
             <p className="text-muted-foreground">
-              Gestão completa de clientes e visualização de dados por empresa
+              Central de configurações e gestão do sistema
             </p>
           </div>
-
-          {/* Filtro de Empresa */}
-          <Card className="bg-gradient-card border-none shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Building2 className="h-5 w-5 text-primary" />
-                <div className="flex-1 space-y-2">
-                  <label className="text-sm font-medium">Selecione a Empresa</label>
-                  <Select value={selectedCompany || ""} onValueChange={setSelectedCompany}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Escolha uma empresa para visualizar os dados" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company} value={company}>
-                          {company}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {!selectedCompany && (
             <Alert>
               <Building2 className="h-4 w-4" />
               <AlertDescription>
-                Selecione uma empresa acima para visualizar os dados e acessar as funcionalidades
+                Selecione uma empresa no cabeçalho para visualizar os dados específicos
               </AlertDescription>
             </Alert>
           )}
 
-          {selectedCompany && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             <Card className="bg-gradient-card border-none shadow-lg">
-              <CardContent className="p-6">
-                <Tabs defaultValue="dashboard" onValueChange={handleTabChange}>
-                  <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2">
-                    <TabsTrigger value="dashboard" className="gap-2">
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span className="hidden sm:inline">Dashboard</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="processos" className="gap-2">
-                      <ListChecks className="h-4 w-4" />
-                      <span className="hidden sm:inline">Processos</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="solicitantes" className="gap-2">
-                      <Users className="h-4 w-4" />
-                      <span className="hidden sm:inline">Solicitantes</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="analise-avancada" className="gap-2">
-                      <TrendingUp className="h-4 w-4" />
-                      <span className="hidden sm:inline">Análise</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="controle-horas" className="gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span className="hidden sm:inline">Horas</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="faq" className="gap-2">
-                      <HelpCircle className="h-4 w-4" />
-                      <span className="hidden sm:inline">FAQ</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="filtros" className="gap-2">
-                      <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">Filtros</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="pesquisa-satisfacao" className="gap-2">
-                      <SmilePlus className="h-4 w-4" />
-                      <span className="hidden sm:inline">Satisfação</span>
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <div className="mt-6">
-                    <div className="text-center p-12 text-muted-foreground">
-                      <p className="text-lg mb-2">Clique nas abas acima para acessar cada seção</p>
-                      <p className="text-sm">Os dados serão filtrados automaticamente pela empresa selecionada: <span className="font-semibold text-foreground">{selectedCompany}</span></p>
-                    </div>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Settings className="h-6 w-6 text-primary" />
                   </div>
-                </Tabs>
+                  <div>
+                    <CardTitle>Configurações</CardTitle>
+                    <CardDescription>Gerencie as configurações do sistema</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Configure preferências, integrações e parâmetros globais da aplicação.
+                </p>
               </CardContent>
             </Card>
+
+            <Card className="bg-gradient-card border-none shadow-lg">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Gestão de Empresas</CardTitle>
+                    <CardDescription>Administre as empresas do sistema</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Atualmente gerenciando dados para múltiplas empresas clientes.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-card border-none shadow-lg">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <BarChart3 className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Análises Consolidadas</CardTitle>
+                    <CardDescription>Visão geral de todas as empresas</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Use o menu lateral para navegar entre as diferentes seções analíticas.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-card border-none shadow-lg">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-lg bg-primary/10">
+                    <Shield className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Segurança</CardTitle>
+                    <CardDescription>Controle de acesso e permissões</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Gerencie usuários, roles e permissões de acesso ao sistema.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {selectedCompany && (
+            <Alert className="border-primary/20 bg-primary/5">
+              <Building2 className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-foreground">
+                Empresa ativa: <strong>{selectedCompany}</strong>
+                <br />
+                <span className="text-sm text-muted-foreground">
+                  Use o menu lateral (ícone ☰) para navegar entre as seções
+                </span>
+              </AlertDescription>
+            </Alert>
           )}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Filter, Package, Users, TrendingUp, Clock, HelpCircle, Moon, Sun, Eye, Type, LogOut } from "lucide-react";
+import { Home, Filter, Package, Users, TrendingUp, Clock, HelpCircle, Moon, Sun, Eye, Type, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -10,13 +10,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCompany } from "@/contexts/CompanyContext";
+import { AdminSidebar } from "./AdminSidebar";
+import { useState } from "react";
 import sankhyaIcon from "@/assets/sankhya-icon.png";
 
 export const Navbar = () => {
   const { isDarkMode, isAccessibilityMode, fontSize, toggleDarkMode, toggleAccessibilityMode, setFontSize } = useTheme();
   const { user, logout } = useAuth();
+  const { selectedCompany, setSelectedCompany, companies } = useCompany();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const clientNavItems = [
     { path: "/", label: "Dashboard", icon: Home },
@@ -28,40 +34,73 @@ export const Navbar = () => {
     { path: "/filtros", label: "Filtros", icon: Filter },
   ];
 
-  const adminNavItems = [
-    { path: "/admin", label: "Painel Master", icon: Home },
-  ];
+  const isAdmin = user?.role === "admin";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-sm shadow-md">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={sankhyaIcon} alt="Sankhya" className="h-12 w-12" />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-foreground">Sankhya</span>
-              <span className="text-xs text-muted-foreground">BP Indaiatuba & SP Metropolitana</span>
+    <>
+      {isAdmin && <AdminSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />}
+      
+      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-sm shadow-md">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(true)}
+                  className="h-9 w-9"
+                  aria-label="Abrir menu"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              )}
+              <img src={sankhyaIcon} alt="Sankhya" className="h-10 w-10 md:h-12 md:w-12" />
+              <div className="flex flex-col">
+                <span className="text-base md:text-lg font-bold text-foreground">Sankhya</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">BP Indaiatuba & SP Metropolitana</span>
+              </div>
             </div>
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-2">
-            {(user?.role === "client" ? clientNavItems : adminNavItems).map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    isActive
-                      ? "bg-gradient-primary text-primary-foreground shadow-md"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`
-                }
-              >
-                <item.icon className="h-4 w-4" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
+            
+            {/* Client Navigation */}
+            {!isAdmin && (
+              <nav className="hidden md:flex items-center gap-2">
+                {clientNavItems.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                        isActive
+                          ? "bg-gradient-primary text-primary-foreground shadow-md"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`
+                    }
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </NavLink>
+                ))}
+              </nav>
+            )}
+
+            {/* Admin Company Selector */}
+            {isAdmin && (
+              <div className="flex-1 max-w-xs hidden md:block">
+                <Select value={selectedCompany || ""} onValueChange={setSelectedCompany}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione a empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((company) => (
+                      <SelectItem key={company} value={company}>
+                        {company}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
           <div className="flex items-center gap-2">
             {/* User Info */}
@@ -160,5 +199,6 @@ export const Navbar = () => {
         </div>
       </div>
     </header>
+    </>
   );
 };
