@@ -18,7 +18,7 @@ export const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
-  const navItems = [
+  const clientNavItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/processos", label: "Processos", icon: Package },
     { path: "/solicitantes", label: "Solicitantes", icon: Users },
@@ -26,6 +26,10 @@ export const Navbar = () => {
     { path: "/controle-horas", label: "Controle de Horas", icon: Clock },
     { path: "/faq", label: "FAQ", icon: HelpCircle },
     { path: "/filtros", label: "Filtros", icon: Filter },
+  ];
+
+  const adminNavItems = [
+    { path: "/admin", label: "Painel Master", icon: Home },
   ];
 
   return (
@@ -40,26 +44,24 @@ export const Navbar = () => {
             </div>
           </div>
           
-          {user?.role === "client" && (
-            <nav className="hidden md:flex items-center gap-2">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      isActive
-                        ? "bg-gradient-primary text-primary-foreground shadow-md"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`
-                  }
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </NavLink>
-              ))}
-            </nav>
-          )}
+          <nav className="hidden md:flex items-center gap-2">
+            {(user?.role === "client" ? clientNavItems : adminNavItems).map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-gradient-primary text-primary-foreground shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`
+                }
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
 
           <div className="flex items-center gap-2">
             {/* User Info */}

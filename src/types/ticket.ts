@@ -10,6 +10,8 @@ export interface Ticket {
   horaCriacao: string;
   horaUltimaAtualizacao: string;
   processo: string;
+  empresa?: string;
+  avaliacao?: string;
 }
 
 export interface TicketStats {

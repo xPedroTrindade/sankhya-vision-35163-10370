@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TicketProvider } from "./contexts/TicketContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { CompanyProvider } from "./contexts/CompanyContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import AdminMaster from "./pages/AdminMaster";
@@ -24,16 +25,52 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <TooltipProvider>
-          <TicketProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+        <CompanyProvider>
+          <TooltipProvider>
+            <TicketProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={
                   <ProtectedRoute requireRole="admin">
                     <AdminMaster />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/dashboard" element={
+                  <ProtectedRoute requireRole="admin">
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/processos" element={
+                  <ProtectedRoute requireRole="admin">
+                    <Processos />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/solicitantes" element={
+                  <ProtectedRoute requireRole="admin">
+                    <Solicitantes />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/filtros" element={
+                  <ProtectedRoute requireRole="admin">
+                    <Filtros />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/analise-avancada" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AnaliseAvancada />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/controle-horas" element={
+                  <ProtectedRoute requireRole="admin">
+                    <ControleHoras />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/faq" element={
+                  <ProtectedRoute requireRole="admin">
+                    <FAQ />
                   </ProtectedRoute>
                 } />
                 <Route path="/" element={
@@ -77,6 +114,7 @@ const App = () => (
             </BrowserRouter>
           </TicketProvider>
         </TooltipProvider>
+        </CompanyProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

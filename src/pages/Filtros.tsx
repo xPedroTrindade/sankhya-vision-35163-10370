@@ -1,24 +1,31 @@
 import { useState, useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Filter, Search, Download, FileX } from "lucide-react";
+import { Filter, Search, Download, FileX, Smile, Frown, Meh } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useTickets } from "@/contexts/TicketContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompany } from "@/contexts/CompanyContext";
 import { format, parseISO, differenceInHours } from "date-fns";
 import * as XLSX from 'xlsx';
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 
 const Filtros = () => {
   const { tickets } = useTickets();
+  const { user } = useAuth();
+  const { selectedCompany } = useCompany();
+  const isAdmin = user?.role === "admin";
+  
   const [filters, setFilters] = useState({
     status: "todos",
     prioridade: "todos",
     processo: "todos",
-    periodo: "30",
+    avaliacao: "todos",
     busca: ""
   });
 
@@ -27,9 +34,14 @@ const Filtros = () => {
     return Array.from(new Set(tickets.map(t => t.processo).filter(Boolean))).sort();
   }, [tickets]);
 
-  // Filter tickets based on filters
+  // Filter tickets based on company and filters
   const filteredTickets = useMemo(() => {
     return tickets.filter(ticket => {
+      // Filter by company for admin
+      if (isAdmin && selectedCompany && ticket.empresa !== selectedCompany) {
+        return false;
+      }
+
       // Status filter
       if (filters.status !== "todos" && ticket.status.toLowerCase() !== filters.status.toLowerCase()) {
         return false;
@@ -42,6 +54,11 @@ const Filtros = () => {
       
       // Process filter
       if (filters.processo !== "todos" && ticket.processo.toLowerCase() !== filters.processo.toLowerCase()) {
+        return false;
+      }
+
+      // Evaluation filter
+      if (filters.avaliacao !== "todos" && ticket.avaliacao !== filters.avaliacao) {
         return false;
       }
       
@@ -59,7 +76,27 @@ const Filtros = () => {
       
       return true;
     });
-  }, [tickets, filters]);
+  }, [tickets, filters, isAdmin, selectedCompany]);
+
+  // Calculate satisfaction stats for admin
+  const satisfactionStats = useMemo(() => {
+    if (!isAdmin) return null;
+    
+    const total = filteredTickets.length;
+    const satisfied = filteredTickets.filter(t => t.avaliacao === "satisfeito").length;
+    const neutral = filteredTickets.filter(t => t.avaliacao === "neutro").length;
+    const unsatisfied = filteredTickets.filter(t => t.avaliacao === "insatisfeito").length;
+    
+    return {
+      total,
+      satisfied,
+      neutral,
+      unsatisfied,
+      satisfiedPercent: total > 0 ? (satisfied / total) * 100 : 0,
+      neutralPercent: total > 0 ? (neutral / total) * 100 : 0,
+      unsatisfiedPercent: total > 0 ? (unsatisfied / total) * 100 : 0,
+    };
+  }, [filteredTickets, isAdmin]);
 
   // Calculate resolution time
   const getResolutionTime = (ticket: any) => {
@@ -70,6 +107,20 @@ const Filtros = () => {
       return hours > 0 ? `${hours}h` : '<1h';
     } catch {
       return '-';
+    }
+  };
+
+  // Get evaluation emoji
+  const getEvaluationEmoji = (avaliacao: string) => {
+    switch (avaliacao) {
+      case "satisfeito":
+        return "😊";
+      case "neutro":
+        return "😐";
+      case "insatisfeito":
+        return "😞";
+      default:
+        return "-";
     }
   };
 
@@ -89,7 +140,8 @@ const Filtros = () => {
       'Solicitante': ticket.nomeSolicitante,
       'Email': ticket.emailSolicitante,
       'Data Criação': format(parseISO(ticket.horaCriacao), 'dd/MM/yyyy HH:mm'),
-      'Tempo Resolução': getResolutionTime(ticket)
+      'Avaliação': ticket.avaliacao || 'Não avaliado',
+      ...(isAdmin ? { 'Tempo Resolução': getResolutionTime(ticket) } : {})
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -133,6 +185,69 @@ const Filtros = () => {
             </p>
           </div>
 
+          {/* Satisfaction Summary for Admin */}
+          {isAdmin && satisfactionStats && (
+            <Card className="shadow-lg border-none bg-gradient-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Smile className="h-5 w-5 text-primary" />
+                  Resumo de Satisfação {selectedCompany && `- ${selectedCompany}`}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">😊</span>
+                        <span className="font-medium">Satisfeitos</span>
+                      </div>
+                      <span className="text-2xl font-bold text-green-500">
+                        {satisfactionStats.satisfiedPercent.toFixed(1)}%
+                      </span>
+                    </div>
+                    <Progress value={satisfactionStats.satisfiedPercent} className="h-2" />
+                    <p className="text-sm text-muted-foreground">
+                      {satisfactionStats.satisfied} de {satisfactionStats.total} tickets
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">😐</span>
+                        <span className="font-medium">Neutros</span>
+                      </div>
+                      <span className="text-2xl font-bold text-yellow-500">
+                        {satisfactionStats.neutralPercent.toFixed(1)}%
+                      </span>
+                    </div>
+                    <Progress value={satisfactionStats.neutralPercent} className="h-2" />
+                    <p className="text-sm text-muted-foreground">
+                      {satisfactionStats.neutral} de {satisfactionStats.total} tickets
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">😞</span>
+                        <span className="font-medium">Insatisfeitos</span>
+                      </div>
+                      <span className="text-2xl font-bold text-red-500">
+                        {satisfactionStats.unsatisfiedPercent.toFixed(1)}%
+                      </span>
+                    </div>
+                    <Progress value={satisfactionStats.unsatisfiedPercent} className="h-2" />
+                    <p className="text-sm text-muted-foreground">
+                      {satisfactionStats.unsatisfied} de {satisfactionStats.total} tickets
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Filtros */}
           <Card className="shadow-lg border-none bg-gradient-card">
             <CardHeader>
@@ -173,7 +288,7 @@ const Filtros = () => {
                   </Select>
                 </div>
 
-              <div className="space-y-2">
+                <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Processo</label>
                   <Select value={filters.processo} onValueChange={(v) => setFilters({...filters, processo: v})}>
                     <SelectTrigger>
@@ -189,17 +304,16 @@ const Filtros = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Período (dias)</label>
-                  <Select value={filters.periodo} onValueChange={(v) => setFilters({...filters, periodo: v})}>
+                  <label className="text-sm font-medium text-foreground">Avaliação</label>
+                  <Select value={filters.avaliacao} onValueChange={(v) => setFilters({...filters, avaliacao: v})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o período" />
+                      <SelectValue placeholder="Selecione a avaliação" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="7">Últimos 7 dias</SelectItem>
-                      <SelectItem value="30">Últimos 30 dias</SelectItem>
-                      <SelectItem value="90">Últimos 90 dias</SelectItem>
-                      <SelectItem value="180">Últimos 6 meses</SelectItem>
-                      <SelectItem value="365">Último ano</SelectItem>
+                      <SelectItem value="todos">Todas</SelectItem>
+                      <SelectItem value="satisfeito">😊 Satisfeito</SelectItem>
+                      <SelectItem value="neutro">😐 Neutro</SelectItem>
+                      <SelectItem value="insatisfeito">😞 Insatisfeito</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -228,7 +342,7 @@ const Filtros = () => {
                   status: "todos",
                   prioridade: "todos",
                   processo: "todos",
-                  periodo: "30",
+                  avaliacao: "todos",
                   busca: ""
                 })}>
                   Limpar
@@ -273,7 +387,8 @@ const Filtros = () => {
                         <TableHead className="font-semibold">Solicitante</TableHead>
                         <TableHead className="font-semibold">Email</TableHead>
                         <TableHead className="font-semibold">Data</TableHead>
-                        <TableHead className="font-semibold">Tempo</TableHead>
+                        <TableHead className="font-semibold">Avaliação</TableHead>
+                        {isAdmin && <TableHead className="font-semibold">Tempo</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -301,7 +416,12 @@ const Filtros = () => {
                           <TableCell className="text-sm">
                             {format(parseISO(ticket.horaCriacao), 'dd/MM/yyyy')}
                           </TableCell>
-                          <TableCell className="font-semibold text-foreground">{getResolutionTime(ticket)}</TableCell>
+                          <TableCell className="text-2xl text-center">
+                            {getEvaluationEmoji(ticket.avaliacao)}
+                          </TableCell>
+                          {isAdmin && (
+                            <TableCell className="font-semibold text-foreground">{getResolutionTime(ticket)}</TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

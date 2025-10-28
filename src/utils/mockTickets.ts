@@ -1,4 +1,5 @@
 import { Ticket } from "@/types/ticket";
+import { COMPANIES } from "@/contexts/CompanyContext";
 
 // Gerar tickets fictícios para Setembro e Outubro 2025
 export const generateMockTickets = (): Ticket[] => {
@@ -13,6 +14,7 @@ export const generateMockTickets = (): Ticket[] => {
   const status = ['Aberto', 'Em Andamento', 'Concluído', 'Fechado'];
   const prioridades = ['Baixa', 'Média', 'Alta', 'Urgente'];
   const tipos = ['Incidente', 'Solicitação', 'Problema', 'Mudança'];
+  const avaliacoes = ['satisfeito', 'neutro', 'insatisfeito'];
   const processos = [
     'Financeiro',
     'Compras',
@@ -90,9 +92,11 @@ export const generateMockTickets = (): Ticket[] => {
         tipo: tipos[Math.floor(Math.random() * tipos.length)],
         nomeSolicitante: solicitante.nome,
         emailSolicitante: solicitante.email,
-        horaCriacao: dataCriacao.toLocaleString('pt-BR'),
-        horaUltimaAtualizacao: dataAtualizacao.toLocaleString('pt-BR'),
-        processo: processos[Math.floor(Math.random() * processos.length)]
+        horaCriacao: dataCriacao.toISOString(),
+        horaUltimaAtualizacao: dataAtualizacao.toISOString(),
+        processo: processos[Math.floor(Math.random() * processos.length)],
+        empresa: COMPANIES[Math.floor(Math.random() * COMPANIES.length)],
+        avaliacao: ticketStatus === 'Fechado' ? avaliacoes[Math.floor(Math.random() * avaliacoes.length)] : undefined
       });
       
       ticketId++;
@@ -100,8 +104,8 @@ export const generateMockTickets = (): Ticket[] => {
   });
   
   return tickets.sort((a, b) => {
-    const dateA = new Date(a.horaCriacao.split(',')[0].split('/').reverse().join('-'));
-    const dateB = new Date(b.horaCriacao.split(',')[0].split('/').reverse().join('-'));
+    const dateA = new Date(a.horaCriacao);
+    const dateB = new Date(b.horaCriacao);
     return dateB.getTime() - dateA.getTime();
   });
 };

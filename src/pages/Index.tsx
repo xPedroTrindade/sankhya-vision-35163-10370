@@ -6,14 +6,19 @@ import { Navbar } from "@/components/Navbar";
 import { FilterSection, FilterOptions } from "@/components/FilterSection";
 import { parseFile, validateTickets } from "@/utils/fileParser";
 import { useTickets } from "@/contexts/TicketContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompany } from "@/contexts/CompanyContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Calendar } from "lucide-react";
+import { RefreshCw, Calendar, Building2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Index = () => {
   const location = useLocation();
   const { tickets, setTickets } = useTickets();
+  const { user } = useAuth();
+  const { selectedCompany } = useCompany();
+  const isAdmin = user?.role === "admin";
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({});
   
@@ -80,12 +85,18 @@ const Index = () => {
 
   // Filtrar tickets por mês/ano se fornecido
   const filteredTicketsByMonth = useMemo(() => {
-    if (!filterMonth || !filterYear) return tickets;
+    // Primeiro, filtra por empresa se for admin
+    let baseTickets = tickets;
+    if (isAdmin && selectedCompany) {
+      baseTickets = tickets.filter(t => t.empresa === selectedCompany);
+    }
+
+    if (!filterMonth || !filterYear) return baseTickets;
     
     const targetMonth = getMonthNumber(filterMonth);
-    if (targetMonth === -1) return tickets;
+    if (targetMonth === -1) return baseTickets;
 
-    return tickets.filter(ticket => {
+    return baseTickets.filter(ticket => {
       try {
         // Tentar parsear diferentes formatos de data
         const dateStr = ticket.horaCriacao;
@@ -109,7 +120,7 @@ const Index = () => {
         return false;
       }
     });
-  }, [tickets, filterMonth, filterYear]);
+  }, [tickets, filterMonth, filterYear, isAdmin, selectedCompany]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,6 +141,15 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {isAdmin && !selectedCompany && tickets.length > 0 && (
+          <Alert className="mb-6">
+            <Building2 className="h-4 w-4" />
+            <AlertDescription>
+              Selecione uma empresa no Painel Master para visualizar os dados
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {tickets.length === 0 ? (
           <div className="max-w-3xl mx-auto mt-12">
             <FileUpload onFileSelect={handleFileSelect} isLoading={isLoading} />
