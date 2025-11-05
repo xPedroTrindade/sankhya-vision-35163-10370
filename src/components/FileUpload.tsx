@@ -28,7 +28,7 @@ export const FileUpload = ({ onFileSelect, isLoading }: FileUploadProps) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv,.xlsx,.xls"
+          accept=".csv,.xlsx,.xls,.json"
           onChange={handleFileChange}
           className="hidden"
           disabled={isLoading}
@@ -42,7 +42,7 @@ export const FileUpload = ({ onFileSelect, isLoading }: FileUploadProps) => {
               {isLoading ? "Processando arquivo..." : "Importar Arquivo de Suporte"}
             </h3>
             <p className="text-sm text-muted-foreground max-w-md">
-              Arraste e solte ou clique para selecionar um arquivo Excel (.xlsx) ou CSV (.csv)
+              Arraste e solte ou clique para selecionar um arquivo Excel (.xlsx), CSV (.csv) ou JSON (.json)
             </p>
           </div>
           <div className="flex gap-4 items-center text-xs text-muted-foreground">
@@ -53,6 +53,10 @@ export const FileUpload = ({ onFileSelect, isLoading }: FileUploadProps) => {
             <div className="flex items-center gap-1">
               <FileText className="h-4 w-4" />
               <span>CSV</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <FileText className="h-4 w-4" />
+              <span>JSON</span>
             </div>
           </div>
           {!isLoading && (
