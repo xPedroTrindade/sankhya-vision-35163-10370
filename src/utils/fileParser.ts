@@ -65,6 +65,7 @@ const mapFreshdeskToTicket = (freshdeskTicket: any): Ticket => {
   
   return {
     id: freshdeskTicket.id?.toString() || '',
+    link_ticket: freshdeskTicket.link_ticket || '',
     assunto: freshdeskTicket.assunto || '',
     descricao: freshdeskTicket.descricao || '',
     status: statusMap[freshdeskTicket.status] || 'Desconhecido',
@@ -76,6 +77,9 @@ const mapFreshdeskToTicket = (freshdeskTicket: any): Ticket => {
     horaUltimaAtualizacao: freshdeskTicket.updated_at || '',
     processo: freshdeskTicket.processo || freshdeskTicket.custom_fields?.cf_processo || '',
     empresa: freshdeskTicket.empresa_id?.toString() || '',
+    modulo: freshdeskTicket.modulo || freshdeskTicket.custom_fields?.cf_mdulo || '',
+    tags: freshdeskTicket.tags || [],
+    is_escalated: freshdeskTicket.is_escalated || false,
   };
 };
 

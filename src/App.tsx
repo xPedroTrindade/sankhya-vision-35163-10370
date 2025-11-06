@@ -10,6 +10,7 @@ import { CompanyProvider } from "./contexts/CompanyContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import AdminMaster from "./pages/AdminMaster";
+import AdminDashboardPage from "./pages/AdminDashboard";
 import PesquisaSatisfacao from "./pages/PesquisaSatisfacao";
 import Index from "./pages/Index";
 import Processos from "./pages/Processos";
@@ -41,7 +42,7 @@ const App = () => (
                 } />
                 <Route path="/admin/dashboard" element={
                   <ProtectedRoute requireRole="admin">
-                    <Index />
+                    <AdminDashboardPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin/processos" element={

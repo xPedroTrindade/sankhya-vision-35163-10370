@@ -160,7 +160,7 @@ export const getTimelineData = (tickets: Ticket[]): ChartData[] => {
     }));
 };
 
-export const generateInsights = (tickets: Ticket[], stats: TicketStats): string[] => {
+export const generateInsights = (tickets: Ticket[], stats: TicketStats, isAdmin: boolean = false): string[] => {
   const insights: string[] = [];
 
   // High priority tickets with urgency
@@ -175,8 +175,8 @@ export const generateInsights = (tickets: Ticket[], stats: TicketStats): string[
     }
   }
 
-  // Average resolution time comparison
-  if (stats.tempoMedioResolucao > 0) {
+  // Average resolution time - APENAS PARA ADMIN
+  if (isAdmin && stats.tempoMedioResolucao > 0) {
     const benchmark = 12; // hours
     const diff = stats.tempoMedioResolucao - benchmark;
     if (diff > 0) {
@@ -191,9 +191,18 @@ export const generateInsights = (tickets: Ticket[], stats: TicketStats): string[
   const closedPercentage = Math.round((stats.ticketsFechados / stats.totalTickets) * 100);
   
   if (openPercentage > 60) {
-    insights.push(`📊 ${openPercentage}% dos tickets estão em aberto. Recomendação: Revisar alocação de recursos e considerar automação de processos repetitivos.`);
+    insights.push(`📊 ${openPercentage}% dos tickets estão em aberto. Sugestão: Priorizar fechamento dos chamados pendentes.`);
   } else if (closedPercentage > 80) {
-    insights.push(`🎯 Taxa de fechamento de ${closedPercentage}% demonstra alta eficiência operacional do time de suporte!`);
+    insights.push(`🎯 Taxa de fechamento de ${closedPercentage}% demonstra excelente gestão de chamados!`);
+  }
+
+  // Escalated tickets analysis
+  const escalatedTickets = tickets.filter(t => t.is_escalated).length;
+  if (escalatedTickets > 0) {
+    const escalatedPercentage = Math.round((escalatedTickets / stats.totalTickets) * 100);
+    if (escalatedPercentage > 15) {
+      insights.push(`🔺 ${escalatedPercentage}% dos tickets foram escalados. Considerar revisão de processos de primeira linha.`);
+    }
   }
 
   // Most common process with actionable insight
@@ -203,7 +212,7 @@ export const generateInsights = (tickets: Ticket[], stats: TicketStats): string[
     const percentage = Math.round((topProcess.value / stats.totalTickets) * 100);
     
     if (percentage > 35) {
-      insights.push(`🏭 O processo "${topProcess.name}" concentra ${percentage}% dos chamados. Sugestão: Criar base de conhecimento específica e treinar usuários neste módulo.`);
+      insights.push(`🏭 O processo "${topProcess.name}" concentra ${percentage}% dos chamados. Sugestão: Criar base de conhecimento específica para este módulo.`);
     }
     
     // Second most common for comparison
@@ -211,9 +220,22 @@ export const generateInsights = (tickets: Ticket[], stats: TicketStats): string[
       const secondProcess = processData[1];
       const growth = Math.round(((topProcess.value - secondProcess.value) / secondProcess.value) * 100);
       if (growth > 50) {
-        insights.push(`📈 "${topProcess.name}" tem ${growth}% mais tickets que "${secondProcess.name}". Avaliar se há problemas sistêmicos no módulo.`);
+        insights.push(`📈 "${topProcess.name}" tem ${growth}% mais tickets que "${secondProcess.name}". Verificar se há problemas recorrentes.`);
       }
     }
+  }
+
+  // Module analysis
+  const moduleMap: { [key: string]: number } = {};
+  tickets.forEach(ticket => {
+    const module = ticket.modulo || 'Não definido';
+    moduleMap[module] = (moduleMap[module] || 0) + 1;
+  });
+  
+  const topModule = Object.entries(moduleMap).sort((a, b) => b[1] - a[1])[0];
+  if (topModule && topModule[1] > stats.totalTickets * 0.3) {
+    const modulePercentage = Math.round((topModule[1] / stats.totalTickets) * 100);
+    insights.push(`📦 O módulo "${topModule[0]}" representa ${modulePercentage}% dos tickets. Oportunidade para treinamento específico.`);
   }
 
   // Top requester with pattern analysis
@@ -224,14 +246,29 @@ export const generateInsights = (tickets: Ticket[], stats: TicketStats): string[
     const openCount = userTickets.filter(t => t.status.toLowerCase().includes('aberto')).length;
     
     if (top.value > 10) {
-      insights.push(`👤 ${top.name} é o usuário mais ativo com ${top.value} tickets (${openCount} em aberto). Considerar treinamento personalizado ou verificar problemas recorrentes.`);
+      insights.push(`👤 ${top.name} é o usuário mais ativo com ${top.value} tickets (${openCount} em aberto). Considerar suporte personalizado.`);
     }
   }
 
   // Type pattern analysis
   const typeData = getTypeChartData(tickets);
   if (typeData.length > 0 && typeData[0].value > stats.totalTickets * 0.3) {
-    insights.push(`🔍 ${Math.round((typeData[0].value / stats.totalTickets) * 100)}% dos tickets são do tipo "${typeData[0].name}". Oportunidade para criar automação ou documentação preventiva.`);
+    insights.push(`🔍 ${Math.round((typeData[0].value / stats.totalTickets) * 100)}% dos tickets são do tipo "${typeData[0].name}". Avaliar criação de documentação preventiva.`);
+  }
+
+  // Tags analysis
+  const tagMap: { [key: string]: number } = {};
+  tickets.forEach(ticket => {
+    if (ticket.tags && Array.isArray(ticket.tags)) {
+      ticket.tags.forEach(tag => {
+        tagMap[tag] = (tagMap[tag] || 0) + 1;
+      });
+    }
+  });
+  
+  const topTag = Object.entries(tagMap).sort((a, b) => b[1] - a[1])[0];
+  if (topTag && topTag[1] > 5) {
+    insights.push(`🏷️ A tag "${topTag[0]}" aparece em ${topTag[1]} tickets. Padrão identificado para análise.`);
   }
 
   return insights;

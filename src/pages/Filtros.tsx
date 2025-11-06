@@ -173,7 +173,7 @@ const Filtros = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Status</label>
                   <Select value={filters.status} onValueChange={(v) => setFilters({...filters, status: v})}>
@@ -291,20 +291,20 @@ const Filtros = () => {
                   </p>
                 </div>
               ) : (
-                <div className="rounded-lg border border-border overflow-hidden">
+                <div className="rounded-lg border border-border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="font-semibold">ID</TableHead>
-                        <TableHead className="font-semibold">Assunto</TableHead>
-                        <TableHead className="font-semibold">Status</TableHead>
-                        <TableHead className="font-semibold">Prioridade</TableHead>
-                        <TableHead className="font-semibold">Processo</TableHead>
-                        <TableHead className="font-semibold">Solicitante</TableHead>
-                        <TableHead className="font-semibold">Email</TableHead>
-                        <TableHead className="font-semibold">Data</TableHead>
-                        <TableHead className="font-semibold">Avaliação</TableHead>
-                        {isAdmin && <TableHead className="font-semibold">Tempo</TableHead>}
+                        <TableHead className="font-semibold text-xs md:text-sm whitespace-nowrap">ID</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm">Assunto</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm">Status</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm">Prioridade</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm hidden md:table-cell">Processo</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm hidden lg:table-cell">Solicitante</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm hidden xl:table-cell">Email</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm">Data</TableHead>
+                        <TableHead className="font-semibold text-xs md:text-sm hidden sm:table-cell">Avaliação</TableHead>
+                        {isAdmin && <TableHead className="font-semibold text-xs md:text-sm">Tempo</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -313,30 +313,43 @@ const Filtros = () => {
                           key={ticket.id}
                           className="hover:bg-muted/30 transition-colors animate-fade-in"
                           style={{ animationDelay: `${index * 0.05}s` }}
-                        >
-                          <TableCell className="font-mono text-sm">{ticket.id}</TableCell>
-                          <TableCell className="font-medium max-w-xs truncate">{ticket.assunto}</TableCell>
+                         >
+                          <TableCell className="font-mono text-xs md:text-sm whitespace-nowrap">
+                            {ticket.link_ticket ? (
+                              <a 
+                                href={ticket.link_ticket} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                              >
+                                {ticket.id}
+                              </a>
+                            ) : (
+                              ticket.id
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium max-w-[200px] md:max-w-xs truncate text-xs md:text-sm">{ticket.assunto}</TableCell>
                           <TableCell>
-                            <Badge className={getStatusColor(ticket.status)}>
+                            <Badge className={`${getStatusColor(ticket.status)} text-xs`}>
                               {ticket.status}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getPriorityColor(ticket.prioridade)}>
+                            <Badge className={`${getPriorityColor(ticket.prioridade)} text-xs`}>
                               {ticket.prioridade}
                             </Badge>
                           </TableCell>
-                          <TableCell>{ticket.processo}</TableCell>
-                          <TableCell>{ticket.nomeSolicitante}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{ticket.emailSolicitante}</TableCell>
-                          <TableCell className="text-sm">
+                          <TableCell className="hidden md:table-cell text-xs md:text-sm">{ticket.processo}</TableCell>
+                          <TableCell className="hidden lg:table-cell text-xs md:text-sm">{ticket.nomeSolicitante}</TableCell>
+                          <TableCell className="hidden xl:table-cell text-xs text-muted-foreground">{ticket.emailSolicitante}</TableCell>
+                          <TableCell className="text-xs md:text-sm whitespace-nowrap">
                             {format(parseISO(ticket.horaCriacao), 'dd/MM/yyyy')}
                           </TableCell>
-                          <TableCell className="text-2xl text-center">
+                          <TableCell className="text-xl md:text-2xl text-center hidden sm:table-cell">
                             {getEvaluationEmoji(ticket.avaliacao)}
                           </TableCell>
                           {isAdmin && (
-                            <TableCell className="font-semibold text-foreground">{getResolutionTime(ticket)}</TableCell>
+                            <TableCell className="font-semibold text-foreground text-xs md:text-sm">{getResolutionTime(ticket)}</TableCell>
                           )}
                         </TableRow>
                       ))}
