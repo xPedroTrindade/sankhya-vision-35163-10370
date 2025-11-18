@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Calendar, Building2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BackendConnection } from "@/components/BackendConnection";
 
 const Index = () => {
   const location = useLocation();
@@ -152,26 +151,14 @@ const Index = () => {
         )}
         
         {tickets.length === 0 ? (
-          <div className="max-w-3xl mx-auto mt-12 space-y-6">
-            <BackendConnection />
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">ou</span>
-              </div>
-            </div>
-
+          <div className="max-w-3xl mx-auto mt-12">
             <FileUpload onFileSelect={handleFileSelect} isLoading={isLoading} />
-            
             <div className="mt-8 p-6 rounded-lg bg-muted/30 border border-border">
               <h3 className="font-semibold text-foreground mb-3">Como usar:</h3>
               <ol className="space-y-2 text-sm text-muted-foreground">
-                <li>1. <strong>Via Backend:</strong> Clique em "Conectar ao Backend" para usar dados mockados do servidor Node.js</li>
-                <li>2. <strong>Via Upload:</strong> Exporte seus tickets em formato Excel (.xlsx), CSV (.csv) ou JSON (.json)</li>
-                <li>3. Certifique-se de que o arquivo contém as colunas necessárias</li>
+                <li>1. Exporte seus tickets de suporte em formato Excel (.xlsx) ou CSV (.csv)</li>
+                <li>2. Certifique-se de que o arquivo contém as colunas necessárias</li>
+                <li>3. Faça upload do arquivo usando o botão acima</li>
                 <li>4. Visualize insights automáticos e gráficos interativos</li>
               </ol>
             </div>
