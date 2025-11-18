@@ -1,6 +1,5 @@
 export interface Ticket {
   id: string;
-  link_ticket?: string;
   assunto: string;
   descricao: string;
   status: string;
@@ -13,9 +12,6 @@ export interface Ticket {
   processo: string;
   empresa?: string;
   avaliacao?: string;
-  modulo?: string;
-  tags?: string[];
-  is_escalated?: boolean;
 }
 
 export interface TicketStats {

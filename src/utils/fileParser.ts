@@ -18,69 +18,13 @@ const columnMapping: { [key: string]: keyof Ticket } = {
 export const parseFile = async (file: File): Promise<Ticket[]> => {
   const extension = file.name.split('.').pop()?.toLowerCase();
   
-  if (extension === 'json') {
-    return parseJSON(file);
-  } else if (extension === 'csv') {
+  if (extension === 'csv') {
     return parseCSV(file);
   } else if (extension === 'xlsx' || extension === 'xls') {
     return parseExcel(file);
   } else {
-    throw new Error('Formato de arquivo não suportado. Use .json, .csv, .xlsx ou .xls');
+    throw new Error('Formato de arquivo não suportado. Use .csv, .xlsx ou .xls');
   }
-};
-
-const parseJSON = async (file: File): Promise<Ticket[]> => {
-  const text = await file.text();
-  const data = JSON.parse(text);
-  
-  // Se for um array direto
-  if (Array.isArray(data)) {
-    return data.map(mapFreshdeskToTicket);
-  }
-  
-  // Se tiver uma propriedade que contenha o array
-  if (data.tickets && Array.isArray(data.tickets)) {
-    return data.tickets.map(mapFreshdeskToTicket);
-  }
-  
-  throw new Error('Formato JSON inválido. Esperado um array de tickets.');
-};
-
-const mapFreshdeskToTicket = (freshdeskTicket: any): Ticket => {
-  // Mapear status numérico para string
-  const statusMap: { [key: number]: string } = {
-    2: 'Aberto',
-    3: 'Pendente',
-    4: 'Resolvido',
-    5: 'Fechado',
-  };
-  
-  // Mapear prioridade numérica para string
-  const prioridadeMap: { [key: number]: string } = {
-    1: 'Baixa',
-    2: 'Média',
-    3: 'Alta',
-    4: 'Urgente',
-  };
-  
-  return {
-    id: freshdeskTicket.id?.toString() || '',
-    link_ticket: freshdeskTicket.link_ticket || '',
-    assunto: freshdeskTicket.assunto || '',
-    descricao: freshdeskTicket.descricao || '',
-    status: statusMap[freshdeskTicket.status] || 'Desconhecido',
-    prioridade: prioridadeMap[freshdeskTicket.prioridade] || 'Média',
-    tipo: freshdeskTicket.tipo || '',
-    nomeSolicitante: freshdeskTicket.nome_solicitante || '',
-    emailSolicitante: freshdeskTicket.email_solicitante || '',
-    horaCriacao: freshdeskTicket.created_at || '',
-    horaUltimaAtualizacao: freshdeskTicket.updated_at || '',
-    processo: freshdeskTicket.processo || freshdeskTicket.custom_fields?.cf_processo || '',
-    empresa: freshdeskTicket.empresa_id?.toString() || '',
-    modulo: freshdeskTicket.modulo || freshdeskTicket.custom_fields?.cf_mdulo || '',
-    tags: freshdeskTicket.tags || [],
-    is_escalated: freshdeskTicket.is_escalated || false,
-  };
 };
 
 const parseCSV = async (file: File): Promise<Ticket[]> => {

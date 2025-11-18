@@ -68,7 +68,7 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
   }
 
   const stats = processTicketData(filteredTickets);
-  const insights = generateInsights(filteredTickets, stats, false); // false = não é admin (insights para cliente)
+  const insights = generateInsights(filteredTickets, stats);
   const companies = getCompanyData(tickets);
 
   const statusData = getStatusChartData(filteredTickets);
@@ -92,7 +92,7 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Total de Tickets"
           value={stats.totalTickets}
@@ -105,15 +105,14 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
           trend={`${Math.round((stats.ticketsAbertos / stats.totalTickets) * 100)}%`}
         />
         <KPICard
-          title="Tickets Fechados"
-          value={stats.ticketsFechados}
-          icon={CheckCircle2}
-          trend={`${Math.round((stats.ticketsFechados / stats.totalTickets) * 100)}%`}
-        />
-        <KPICard
           title="Prioridade Alta"
           value={stats.prioridadeAlta}
           icon={TrendingUp}
+        />
+        <KPICard
+          title="Tempo Médio (horas)"
+          value={stats.tempoMedioResolucao}
+          icon={Clock}
         />
       </div>
 
@@ -132,7 +131,7 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
       )}
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Status Chart */}
         <Card className="shadow-lg border-none bg-gradient-card">
           <CardHeader>
@@ -142,7 +141,7 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={statusData}
@@ -173,11 +172,11 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={priorityData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--foreground))" fontSize={12} />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                <YAxis stroke="hsl(var(--foreground))" />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))',
@@ -200,11 +199,11 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={processData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" stroke="hsl(var(--foreground))" fontSize={12} />
-                <YAxis dataKey="name" type="category" stroke="hsl(var(--foreground))" width={80} fontSize={11} />
+                <XAxis type="number" stroke="hsl(var(--foreground))" />
+                <YAxis dataKey="name" type="category" stroke="hsl(var(--foreground))" width={100} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))',
@@ -227,11 +226,11 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={requesterData.slice(0, 8)} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" stroke="hsl(var(--foreground))" fontSize={12} />
-                <YAxis dataKey="name" type="category" stroke="hsl(var(--foreground))" width={100} fontSize={11} />
+                <XAxis type="number" stroke="hsl(var(--foreground))" />
+                <YAxis dataKey="name" type="category" stroke="hsl(var(--foreground))" width={120} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))',
@@ -255,11 +254,11 @@ export const Dashboard = ({ tickets, selectedCompany, filters = {} }: DashboardP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={timelineData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" fontSize={11} angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="hsl(var(--foreground))" fontSize={12} />
+              <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+              <YAxis stroke="hsl(var(--foreground))" />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--card))',
